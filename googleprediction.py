@@ -16,12 +16,16 @@ from __future__ import print_function
 import argparse
 import pprint
 import time
+import numpy as np
 
 from apiclient import sample_tools
 from oauth2client import client
 
 # Time to wait (in seconds) between successive checks of training status.
-SLEEP_TIME = 10
+TRAIN_SLEEP_TIME = 10
+
+# Time to wait (in seconds) between successive prediction calls.
+PREDICT_SLEEP_TIME = 0.8
 
 # String to dispaly if OAuth fails.
 REAUTH = ("The credentials have been revoked or expired. "
@@ -72,6 +76,10 @@ class GooglePredictor(object):
         self.papi = service.trainedmodels()
 
     def list(self):
+        """
+        List available models in the current project.
+
+        """
         try:
             # List models.
             print_header("Fetching list of first ten models")
@@ -85,6 +93,10 @@ class GooglePredictor(object):
             print(REAUTH)
 
     def get_params(self):
+        """
+        Get description of currnet model.
+
+        """
         try:
             # Describe model.
             print_header("Fetching model description")
@@ -98,6 +110,10 @@ class GooglePredictor(object):
             print(REAUTH)
 
     def fit(self, model_type='CLASSIFICATION'):
+        """
+        Fit a model to training data in the current bucket object.
+
+        """
         try:
             # Start training request on a data set.
             print_header("Submitting model training request")
@@ -122,7 +138,7 @@ class GooglePredictor(object):
                 if state == 'DONE':
                     break
                 elif state == 'RUNNING':
-                    time.sleep(SLEEP_TIME)
+                    time.sleep(TRAIN_SLEEP_TIME)
                     continue
                 else:
                     raise Exception("Training Error: " + state)
@@ -137,19 +153,18 @@ class GooglePredictor(object):
 
     def predict(self, X):
         """
-        Get model predictions for the examples in X.
+        Get model predictions for the samples in X.
 
-        X is either a single list containing the entries in the
-        input feature vector for a single example or it is a list of lists
-        where each sublist is itself an input feature vector.
+        X is a numpy array where each column is a feature, and
+        each row is an observation sample.
 
         """
         try:
             # Make some predictions using the newly trained model.
-            # print_header("Making some predictions")
+            print_header("Making some predictions")
             out = []
             for sample in X:
-                body = {'input': {'csvInstance': sample}}
+                body = {'input': {'csvInstance': sample.tolist()}}
                 result = self.papi.predict(
                     body=body,
                     id=self.flags.model_id,
@@ -158,15 +173,20 @@ class GooglePredictor(object):
                     out.append(result['outputLabel'])
                 elif 'outputValue' in result:
                     out.append(float(result['outputValue']))
-            return out
+                time.sleep(PREDICT_SLEEP_TIME)
+            return np.array(out)
 
         except client.AccessTokenRefreshError:
             print(REAUTH)
 
     def delete(self):
+        """
+        Delete the current model.
+
+        """
         try:
             # Delete model.
-            print_header('Deleting model')
+            print_header("Deleting model")
             result = self.papi.delete(
                 id=self.flags.model_id,
                 project=self.flags.project_id).execute()
