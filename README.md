@@ -3,6 +3,9 @@ Utah Code Camp 2015
 
 IPython notebooks and supporting files for
 a presentation on the Google Prediction API.
+The primary result in the presentation is a **performance
+benchmark of the Google Prediction API against 
+`sklearn.RandomForestClassifier`**.
 Key files include:
 
 * ml_with_goog_pred.ipynb: The main presentation.
