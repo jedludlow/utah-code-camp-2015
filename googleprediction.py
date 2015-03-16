@@ -1,5 +1,5 @@
 """
-Wrap Google Predition API into something that looks
+Wrap Google Prediction API into something that looks
 kind of like the standard scikit-learn interface to
 learning models.
 
@@ -94,7 +94,7 @@ class GooglePredictor(object):
 
     def get_params(self):
         """
-        Get description of currnet model.
+        Get description of current model.
 
         """
         try:
