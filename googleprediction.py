@@ -27,7 +27,7 @@ TRAIN_SLEEP_TIME = 10
 # Time to wait (in seconds) between successive prediction calls.
 PREDICT_SLEEP_TIME = 0.8
 
-# String to dispaly if OAuth fails.
+# String to display if OAuth fails.
 REAUTH = ("The credentials have been revoked or expired. "
           "Please re-instantiate the predictor to re-authorize.")
 
